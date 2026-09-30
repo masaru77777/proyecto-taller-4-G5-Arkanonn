@@ -1,69 +1,83 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [eleccion, setEleccion] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetch("/api/elecciones/1")
+      .then((respuesta) => {
+        if (!respuesta.ok) {
+          throw new Error("No se pudo obtener la elección");
+        }
+
+        return respuesta.json();
+      })
+      .then((datos) => {
+        setEleccion(datos);
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
+  }, []);
+
+  if (error) {
+    return <h2>{error}</h2>;
+  }
+
+  if (!eleccion) {
+    return <h2>Cargando elección...</h2>;
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.js</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main>
+      <h1>{eleccion.titulo}</h1>
+
+      <p>{eleccion.descripcion}</p>
+
+      <p>
+        <strong>Fecha de inicio:</strong> {eleccion.fechaInicio}
+      </p>
+
+      <p>
+        <strong>Fecha de término:</strong> {eleccion.fechaFin}
+      </p>
+
+      <p>
+        <strong>Estado:</strong> {eleccion.estado}
+      </p>
+
+      <h2>Listas</h2>
+
+      {eleccion.listas.map((lista) => (
+        <div key={lista.id}>
+          <h3>{lista.nombre}</h3>
+
+          <p>{lista.descripcion}</p>
+
+          <h4>Integrantes</h4>
+
+          <ul>
+            {lista.integrantes.map((integrante, index) => (
+              <li key={index}>
+                {integrante.nombre} - {integrante.cargo}
+              </li>
+            ))}
+          </ul>
+
+          <h4>Propuestas</h4>
+
+          <ul>
+            {lista.propuestas.map((propuesta, index) => (
+              <li key={index}>{propuesta}</li>
+            ))}
+          </ul>
+
+          <hr />
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      ))}
+    </main>
   );
 }
